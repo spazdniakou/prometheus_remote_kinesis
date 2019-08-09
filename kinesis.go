@@ -23,7 +23,7 @@ import (
 const MaxNumberOfBuffer = 1000
 const MaxPutRecordsSize = 4500000 // 5MB
 const MaxPutRecordsEntries = 500
-const DefaultAWSRegion = "ap-northeast-1"
+const DefaultAWSRegion = "us-west-2"
 
 type Config struct {
 	streamName    string
@@ -53,6 +53,11 @@ func newWriter(config Config) *kinesisWriter {
 
 	svc := session.Must(session.NewSessionWithOptions(session.Options{
 		Config: *awsConfig,
+	}))
+
+	svc = session.Must(session.NewSession(&aws.Config{
+		Region:   aws.String("us-west-2"),
+		Endpoint: aws.String("http://localstack.prometheus.svc.cluster.local:4568"),
 	}))
 
 	w := kinesisWriter{
@@ -94,7 +99,7 @@ func (writer *kinesisWriter) receive(w http.ResponseWriter, r *http.Request) {
 	writer.writeCh <- records
 }
 
-func parseRecords(tss []*prompb.TimeSeries) Records {
+func parseRecords(tss []prompb.TimeSeries) Records {
 	records := make(Records, 0, len(tss)*2)
 	for _, ts := range tss {
 		var r Record
