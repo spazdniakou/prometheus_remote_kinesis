@@ -94,7 +94,7 @@ func (writer *kinesisWriter) receive(w http.ResponseWriter, r *http.Request) {
 	writer.writeCh <- records
 }
 
-func parseRecords(tss []*prompb.TimeSeries) Records {
+func parseRecords(tss []prompb.TimeSeries) Records {
 	records := make(Records, 0, len(tss)*2)
 	for _, ts := range tss {
 		var r Record
