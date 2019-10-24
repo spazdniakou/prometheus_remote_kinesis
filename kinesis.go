@@ -91,10 +91,14 @@ func (writer *kinesisWriter) receive(w http.ResponseWriter, r *http.Request) {
 
 	records := parseRecords(req.Timeseries)
 
+	for _, r := range records {
+		logger.Debug("record", zap.String("Name", r.Name), zap.Float64("Value", r.Value.Float64))
+	}
+
 	writer.writeCh <- records
 }
 
-func parseRecords(tss []*prompb.TimeSeries) Records {
+func parseRecords(tss []prompb.TimeSeries) Records {
 	records := make(Records, 0, len(tss)*2)
 	for _, ts := range tss {
 		var r Record
@@ -163,10 +167,10 @@ func (w *kinesisWriter) run() {
 			}
 			if bytes+l > MaxPutRecordsSize ||
 				len(rs)+len(tmp) > MaxPutRecordsEntries {
-				logger.Debug("send",
-					zap.Int("bytes", bytes),
-					zap.Int("entries", len(rs)),
-				)
+				// logger.Debug("send",
+				// 	zap.Int("bytes", bytes),
+				// 	zap.Int("entries", len(rs)),
+				// )
 				if err := w.send(rs, w.svc); err != nil {
 					logger.Error("send failed", zap.NamedError("error", err))
 				}
